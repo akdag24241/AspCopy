@@ -32,11 +32,11 @@ namespace Controllers
         }
 
 
-        public ControllerResponse<bool> InsertUser(string request)
+        public ControllerResponse<bool> InsertUser(RequestClass request)
         {
             var response = new ControllerResponse<bool>();
             response.Success = true;
-            _userDatabase.AddUser(request);
+            _userDatabase.AddUser(request.Name);
             return response;
         }
 

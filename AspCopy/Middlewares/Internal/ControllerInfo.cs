@@ -13,7 +13,7 @@ namespace AspCopy.Middlewares.Internal
     {
         Type GetRequestType();
         Type GetResponseType();
-        MethodInfo[] GetMethods();
+        MethodInfo GetMethod();
         ConstructorInfo GetConstructor();
         Type GetControllerType();
         Type[] GetConstructorParameterTypes();
@@ -21,13 +21,18 @@ namespace AspCopy.Middlewares.Internal
 
     public class ControllerInfo : IControllerInfo
     {
-        private Assembly _controllerAssembly;
         private Type _controllerType;
-        public ControllerInfo(string url)
+        private string methodName;
+        public ControllerInfo(Uri uri)
         {
-            _controllerAssembly = Assembly.GetAssembly(typeof(SomeController));
-            _controllerType = typeof(SomeController);
+            string controllerName = uri.Segments[1].Replace("/", "");
+            methodName = uri.Segments[2];
+            var result = Assembly.GetAssembly(typeof(BaseController)).GetTypes().Where(x => x.Name == controllerName + "Controller").FirstOrDefault();
+            
+            _controllerType = result;
         }
+
+        
 
         public ConstructorInfo GetConstructor()
         {
@@ -35,9 +40,9 @@ namespace AspCopy.Middlewares.Internal
             return constructors.First();
         }
 
-        public MethodInfo[] GetMethods()
+        public MethodInfo GetMethod()
         {
-            return _controllerType.GetMethods();
+            return _controllerType.GetMethod(methodName);
         }
 
         public Type GetRequestType()
@@ -58,18 +63,6 @@ namespace AspCopy.Middlewares.Internal
         public Type[] GetConstructorParameterTypes()
         {
             return GetConstructor().GetParameters().Select(x => x.ParameterType).ToArray();
-        }
-    }
-
-    public class ControllerInfoRetriever : ServiceMethod
-    {
-
-        public override async Task Execute(DataContext dataContext)
-        {
-            dataContext.ControllerInfo = new ControllerInfo(dataContext.Url);
-
-
-            await _next.Execute(dataContext);
         }
     }
 }

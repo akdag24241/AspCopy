@@ -15,25 +15,28 @@ namespace AspCopy.DependencyInjection
 
     public class Dependency
     {
-        public Lifetime Lifetime { get; set; }  
-
+        public string ScopeGuid { get; set; }
+        public Lifetime Lifetime { get; set; }
         public Type InterfaceType { get; set; }
         public Type ConcreteType { get; set; }
         public object Instance { get; set; }
 
-        public Dependency(Type interfaceType, Type concreteType)
+        public Dependency(Type interfaceType, Type concreteType, Lifetime lifetime)
         {
+            Lifetime = lifetime;
             InterfaceType = interfaceType;
             ConcreteType = concreteType;
         }
 
-        public Dependency(Type concreteType)
+        public Dependency(Type concreteType, Lifetime lifetime)
         {
+            Lifetime = lifetime;
             ConcreteType = concreteType;
         }
 
-        public Dependency(object instance, Type type)
+        public Dependency(object instance, Type type, Lifetime lifetime)
         {
+            Lifetime = lifetime;
             Instance = instance;
             ConcreteType = type;
             InterfaceType = type;
@@ -45,16 +48,34 @@ namespace AspCopy.DependencyInjection
     {
         T Get<T>();
         object Get(Type t);
-        void Add(Type t);
-        void Add(object o);
-        void Add<T, R>();
-        void Add<T>(object o);
-        void Add<T>();
+
+        void AddTransient(Type t);
+        void AddTransient(object o);
+        void AddTransient<T, R>();
+        void AddTransient<T>(object o);
+        void AddTransient<T>();
+
+
+        void AddScoped(Type t);
+        void AddScoped(object o);
+        void AddScoped<T, R>();
+        void AddScoped<T>(object o);
+        void AddScoped<T>();
+
+
+        void AddSingleton(Type t);
+        void AddSingleton(object o);
+        void AddSingleton<T, R>();
+        void AddSingleton<T>(object o);
+        void AddSingleton<T>();
+
+        void ResetScopedInstances();
+        void SetScopedGuid();
     }
 
     public class DIContainer : IDIContainer
     {
-
+        private string _currentScope = null;
         private List<Dependency> _dependencies { get; set; }
 
         public DIContainer()
@@ -62,30 +83,90 @@ namespace AspCopy.DependencyInjection
             _dependencies = new List<Dependency>();
         }
 
-        public void Add(Type t)
+        #region Add Transient Overrides
+
+        public void AddTransient(Type t)
         {
-            _dependencies.Add(new Dependency(t));
+            _dependencies.Add(new Dependency(t, Lifetime.Transient));
         }
 
-        public void Add(object o)
+        public void AddTransient(object o)
         {
-            _dependencies.Add(new Dependency(o, o.GetType()));
+            _dependencies.Add(new Dependency(o, o.GetType(), Lifetime.Transient));
         }
 
-        public void Add<Interface, Concrete>()
+        public void AddTransient<Interface, Concrete>()
         {
-            _dependencies.Add(new Dependency(typeof(Interface), typeof(Concrete)));
+            _dependencies.Add(new Dependency(typeof(Interface), typeof(Concrete), Lifetime.Transient));
         }
 
-        public void Add<T>(object o)
+        public void AddTransient<T>(object o)
         {
-            _dependencies.Add(new Dependency(o, typeof(T)));
+            _dependencies.Add(new Dependency(o, typeof(T), Lifetime.Transient));
         }
 
-        public void Add<Concrete>()
+        public void AddTransient<Concrete>()
         {
-            _dependencies.Add(new Dependency(typeof(Concrete)));
+            _dependencies.Add(new Dependency(typeof(Concrete), Lifetime.Transient));
         }
+
+        #endregion
+
+        #region Add Scoped Overrides
+        public void AddScoped(Type t)
+        {
+            _dependencies.Add(new Dependency(t, Lifetime.Scoped));
+        }
+
+        public void AddScoped(object o)
+        {
+            _dependencies.Add(new Dependency(o, o.GetType(), Lifetime.Scoped));
+        }
+
+        public void AddScoped<Interface, Concrete>()
+        {
+            _dependencies.Add(new Dependency(typeof(Interface), typeof(Concrete), Lifetime.Scoped));
+        }
+
+        public void AddScoped<T>(object o)
+        {
+            _dependencies.Add(new Dependency(o, typeof(T), Lifetime.Scoped));
+        }
+
+        public void AddScoped<Concrete>()
+        {
+            _dependencies.Add(new Dependency(typeof(Concrete), Lifetime.Scoped));
+        }
+        #endregion
+
+        #region Add Singleton Overrides
+
+        public void AddSingleton(Type t)
+        {
+            _dependencies.Add(new Dependency(t, Lifetime.Singleton));
+        }
+
+        public void AddSingleton(object o)
+        {
+            _dependencies.Add(new Dependency(o, o.GetType(), Lifetime.Singleton));
+        }
+
+        public void AddSingleton<Interface, Concrete>()
+        {
+            _dependencies.Add(new Dependency(typeof(Interface), typeof(Concrete), Lifetime.Singleton));
+        }
+
+        public void AddSingleton<T>(object o)
+        {
+            _dependencies.Add(new Dependency(o, typeof(T), Lifetime.Singleton));
+        }
+
+        public void AddSingleton<Concrete>()
+        {
+            _dependencies.Add(new Dependency(typeof(Concrete), Lifetime.Singleton));
+        }
+
+        #endregion
 
         public Type Get<Type>()
         {
@@ -106,7 +187,9 @@ namespace AspCopy.DependencyInjection
                 throw new InvalidDataException();
             }
 
-            if(typeOfDependency.Instance != null)
+            if (typeOfDependency.Instance != null && ((typeOfDependency.Lifetime == Lifetime.Scoped && typeOfDependency.ScopeGuid == _currentScope) ||
+                                                       typeOfDependency.Lifetime == Lifetime.Singleton))
+
             {
                 return typeOfDependency.Instance;
             }
@@ -127,14 +210,35 @@ namespace AspCopy.DependencyInjection
                     var instance = CreateInstance(param.ParameterType);
                     instanceList.Add(instance);
                 }
-                return Activator.CreateInstance(typeOfDependency.ConcreteType, instanceList.ToArray());
+                typeOfDependency.Instance = Activator.CreateInstance(typeOfDependency.ConcreteType, instanceList.ToArray());
+                return typeOfDependency.Instance;
             }
 
-            return Activator.CreateInstance(typeOfDependency.ConcreteType);
+            typeOfDependency.Instance = Activator.CreateInstance(typeOfDependency.ConcreteType);
+            return typeOfDependency.Instance;
         }
 
+        private IEnumerable<Dependency> GetScopedDependencies() => _dependencies.Where(x => x.Lifetime == Lifetime.Scoped);
 
+        public void ResetScopedInstances()
+        {
+            var depList = GetScopedDependencies().Where(x => x.ScopeGuid == _currentScope);
+            foreach (var dep in depList)
+            {
+                dep.Instance = null;
+            }
+        }
 
-        
+        public void SetScopedGuid()
+        {
+            var depList = GetScopedDependencies();
+            var guid = Guid.NewGuid().ToString();
+            _currentScope = guid;
+            foreach (var dep in depList)
+            {
+                dep.ScopeGuid = guid;
+            }
+        }
+
     }
 }

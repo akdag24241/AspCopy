@@ -1,4 +1,5 @@
 ﻿using AspCopy.Context;
+using AspCopy.DependencyInjection;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -11,29 +12,21 @@ namespace AspCopy.Middlewares.Internal
     public class RequestRetriever : ServiceMethod
     {
         private HttpListener _listener;
-        public RequestRetriever(HttpListener listener)
+        private IDIContainer _container;
+        public RequestRetriever(IDIContainer container)
         {
-            _listener = listener;
+            _container = container;
         }
 
         public override async Task Execute(DataContext dataContext)
         {
             Console.WriteLine("RequestRetriever BEFORE");
-            var context = await _listener.GetContextAsync();
-            var requestContext = context.Request;
-            string text;
-            using (var reader = new StreamReader(requestContext.InputStream,
-                                                 requestContext.ContentEncoding))
-            {
-                text = reader.ReadToEnd();
-            }
-            var createdContext = new DataContext()
-            {
-                Request = text
-            };
+
             
-            await _next.Execute(createdContext);
-            Console.WriteLine("RequestRetriever AFTER");
+           
+            await _next.Execute(dataContext);
+
+
         }
 
 

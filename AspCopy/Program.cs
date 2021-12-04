@@ -20,16 +20,16 @@ HttpListener CreateNewListener()
 }
 var listener = CreateNewListener();
 var diContainer = new DIContainer();
-diContainer.Add(listener);
-diContainer.Add<DepChain>();
-diContainer.Add<DepChain2>();
-diContainer.Add<DepChain3>();
-diContainer.Add<DepChain4>();
-diContainer.Add<IUserDatabase, UserDatabase>();
+
+diContainer.AddSingleton(listener);
+diContainer.AddScoped<DepChain>();
+diContainer.AddScoped<DepChain2>();
+diContainer.AddScoped<DepChain3>();
+diContainer.AddScoped<DepChain4>();
+diContainer.AddSingleton<IUserDatabase, UserDatabase>();
 
 var smb = new ServiceMethodBuilder(diContainer);
 smb.Add<RequestRetriever>();
-smb.Add<ControllerInfoRetriever>();
 smb.Add<Loggerware>();
 smb.Add<SomeMiddleware>();
 smb.Add<ResponseRetriever>();

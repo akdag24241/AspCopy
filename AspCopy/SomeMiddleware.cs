@@ -18,9 +18,9 @@ namespace AspCopy
 
         public override async Task Execute(DataContext dataContext)
         {
-            Console.WriteLine($"BEFORE SomeMiddleware RESPONSE = {dataContext.Response}");
+            
             await _next.Execute(dataContext);
-            Console.WriteLine("AFTER SomeMiddleware");
+            
         }
     }
 }

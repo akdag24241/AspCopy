@@ -17,9 +17,9 @@ namespace AspCopy
         public override async Task Execute(DataContext dataContext)
         {
             
-            Console.WriteLine($"BEFORE LOGGERWARE REQUEST = {dataContext.Request}");
+            
             await _next.Execute(dataContext);
-            Console.WriteLine($"BEFORE LOGGERWARE RESPONSE = {dataContext.Response}");
+            
         }
     }
 

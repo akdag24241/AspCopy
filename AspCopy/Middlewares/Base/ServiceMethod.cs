@@ -21,7 +21,7 @@ namespace AspCopy
 
         public override Task Execute(DataContext dataContext)
         {
-            dataContext.Response = "Response Retrieved BY LAST MIDDLEWARE";
+            
             return Task.CompletedTask;
         }
     }
