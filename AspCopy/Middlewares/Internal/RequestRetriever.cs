@@ -13,20 +13,24 @@ namespace AspCopy.Middlewares.Internal
     {
         private HttpListener _listener;
         private IDIContainer _container;
-        public RequestRetriever(IDIContainer container)
+        private ILogger _logger;
+        public RequestRetriever(IDIContainer container, ILogger logger)
         {
             _container = container;
+            _logger = logger;
         }
 
         public override async Task Execute(DataContext dataContext)
         {
-            Console.WriteLine("RequestRetriever BEFORE");
+            _logger.AddLog("BEFORE RequestRetriever");
 
             
            
             await _next.Execute(dataContext);
 
 
+
+            _logger.AddLog("AFTER RequestRetriever");
         }
 
 

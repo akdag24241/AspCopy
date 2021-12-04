@@ -45,7 +45,6 @@ namespace AspCopy.Middlewares.Builder
             {
                 var context = await listener.GetContextAsync();
 
-
                 try
                 {
                     _diContainer.SetScopedGuid();
@@ -60,9 +59,6 @@ namespace AspCopy.Middlewares.Builder
                 {
                     _diContainer.ResetScopedInstances();
                 }
-
-
-
 
             }
         }

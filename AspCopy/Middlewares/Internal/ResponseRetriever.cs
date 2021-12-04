@@ -16,14 +16,15 @@ namespace AspCopy.Middlewares.Base
     public class ResponseRetriever : ServiceMethod
     {
         private IDIContainer _diContainer;
-        private IUserDatabase _userDatabase;
-        public ResponseRetriever(IDIContainer container, IUserDatabase userDatabase)
+        private ILogger _logger;
+        public ResponseRetriever(IDIContainer container, ILogger logger)
         {
             _diContainer = container;
-            _userDatabase = userDatabase;
+            _logger = logger;
         }
         public override async Task Execute(DataContext dataContext)
         {
+            _logger.AddLog("BEFORE ResponseRetriever");
             var controllerInfo = new ControllerInfo(dataContext.ListenerRequest.Url);
             var controllerType = controllerInfo.GetControllerType();
             var controllerParams = controllerInfo.GetConstructorParameterTypes();
@@ -52,19 +53,18 @@ namespace AspCopy.Middlewares.Base
 
             using (HttpListenerResponse response = dataContext.ListenerResponse)
             {
-                // returning some test results
-
-                // TODO: return the results in JSON format
                 response.ContentType = "application/json";
                 string responseString = JsonConvert.SerializeObject(result);
-                byte[] buffer = System.Text.Encoding.UTF8.GetBytes(responseString);
+                byte[] buffer = Encoding.UTF8.GetBytes(responseString);
                 response.ContentLength64 = buffer.Length;
                 using (var output = response.OutputStream)
                 {
                     output.Write(buffer, 0, buffer.Length);
                 }
             }
+            
             await _next.Execute(dataContext);
+            _logger.AddLog("AFTER ResponseRetriever");
         }
 
         

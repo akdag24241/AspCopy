@@ -18,16 +18,21 @@ HttpListener CreateNewListener()
 
     return listener;
 }
+
+/* DIContainer starting build */
 var listener = CreateNewListener();
 var diContainer = new DIContainer();
 
 diContainer.AddSingleton(listener);
+diContainer.AddSingleton<ILogger, Logger>();
 diContainer.AddScoped<DepChain>();
 diContainer.AddScoped<DepChain2>();
 diContainer.AddScoped<DepChain3>();
 diContainer.AddScoped<DepChain4>();
 diContainer.AddScoped<IUserDatabase, UserDatabase>();
 
+
+/* Middleware starting build */
 var smb = new ServiceMethodBuilder(diContainer);
 smb.Add<RequestRetriever>();
 smb.Add<Loggerware>();

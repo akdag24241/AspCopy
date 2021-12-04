@@ -1,5 +1,6 @@
 ﻿using AspCopy.Context;
 using AspCopy.Middlewares.Builder;
+using AspCopy.Middlewares.Internal;
 using Controllers;
 using System;
 using System.Collections.Generic;
@@ -11,9 +12,10 @@ namespace AspCopy
 {
     public class Loggerware : ServiceMethod
     {
-        public Loggerware(IUserDatabase userDatabase)
+        private ILogger _logger;
+        public Loggerware(ILogger logger)
         {
-
+            _logger = logger;
         }
 
 
@@ -21,9 +23,9 @@ namespace AspCopy
         public override async Task Execute(DataContext dataContext)
         {
 
-            //requestten işletiliyor
+            _logger.AddLog("BEFORE Loggerware");
             await _next.Execute(dataContext);
-            // response işletiyo
+            _logger.AddLog("AFTER Loggerware");
         }
     }
 
