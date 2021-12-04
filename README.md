@@ -1,6 +1,6 @@
 # AspCopy
 
-Simple asp.net clone.
+Simple singlethreaded asp.net clone.
 
 including asp.net like scoped, singleton, transient lifetime scopes.
 
