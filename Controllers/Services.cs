@@ -22,9 +22,11 @@ namespace Controllers
     public class UserDatabase : InMemoryDatabase<string>, IUserDatabase
     {
         public List<string> Data { get; set; }
-
+        public string GuidStr;
         public UserDatabase()
         {
+            GuidStr = Guid.NewGuid().ToString();
+            Console.WriteLine(GuidStr);
             Data = new List<string>();
         }
 

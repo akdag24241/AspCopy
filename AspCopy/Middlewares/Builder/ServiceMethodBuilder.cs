@@ -27,7 +27,7 @@ namespace AspCopy.Middlewares.Builder
         {
             _diContainer.AddSingleton<T>();
             if (_first == null)
-            {   
+            {
                 _first = _diContainer.Get<T>();
                 _first._next = new EmptyServiceMethod();
                 _instanceMethod = _first;
@@ -45,26 +45,25 @@ namespace AspCopy.Middlewares.Builder
             {
                 var context = await listener.GetContextAsync();
 
-                _ = Task.Run(async () =>
-                  {
-                      try
-                      {
-                          _diContainer.SetScopedGuid();
-                          await _first.Execute(new DataContext(context.Request, context.Response));
-                          
-                      }
-                      catch(Exception ex)
-                      {
-                          Console.WriteLine(ex.ToString());
-                      }
-                      finally
-                      {
-                          _diContainer.ResetScopedInstances();
-                      }
-                      
-                  });
-                
-                
+
+                try
+                {
+                    _diContainer.SetScopedGuid();
+                    await _first.Execute(new DataContext(context.Request, context.Response));
+
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine(ex.ToString());
+                }
+                finally
+                {
+                    _diContainer.ResetScopedInstances();
+                }
+
+
+
+
             }
         }
     }

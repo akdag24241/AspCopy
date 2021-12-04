@@ -26,7 +26,7 @@ diContainer.AddScoped<DepChain>();
 diContainer.AddScoped<DepChain2>();
 diContainer.AddScoped<DepChain3>();
 diContainer.AddScoped<DepChain4>();
-diContainer.AddSingleton<IUserDatabase, UserDatabase>();
+diContainer.AddScoped<IUserDatabase, UserDatabase>();
 
 var smb = new ServiceMethodBuilder(diContainer);
 smb.Add<RequestRetriever>();
